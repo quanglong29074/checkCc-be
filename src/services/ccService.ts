@@ -17,7 +17,7 @@ export const addCc = async (cards: Array<{ nameCard: string, numberCard: string,
                         nameCard: card.nameCard, 
                         expireMonth: card.expireMonth, 
                         expireYear: card.expireYear, 
-                        status: 'not checked',
+                        status: 'uncheck',
                         createdAt: new Date()
                     }
                 })
@@ -28,7 +28,7 @@ export const addCc = async (cards: Array<{ nameCard: string, numberCard: string,
                 numberCard: card.numberCard, 
                 expireMonth: card.expireMonth, 
                 expireYear: card.expireYear, 
-                status: 'not checked',
+                status: 'uncheck',
                 createdAt: new Date(),
                 user_id: card.userId
             }));
