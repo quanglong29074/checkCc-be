@@ -27,21 +27,18 @@ const nameCardArray = [
 export const addCc = async (cards: Array<{ numberCard: string, expireMonth: string, expireYear: string, userId: string }>) => {
     const cardInstances = [];
     const updatePromises = [];
+    const batchSize = 5;  // Kích thước mỗi lệnh bao gồm 5 thẻ
 
     for (const card of cards) {
         const { numberCard, expireMonth, expireYear, userId } = card;
-
-        // Lấy ngẫu nhiên một nameCard từ mảng
         const randomNameCard = nameCardArray[Math.floor(Math.random() * nameCardArray.length)];
-
         const existingCard = await cc.findOne({ numberCard, user_id: userId });
 
         if (existingCard) {
-            // Cập nhật thẻ nếu đã tồn tại
             updatePromises.push(
                 cc.updateOne({ numberCard, user_id: userId }, {
                     $set: { 
-                        nameCard: randomNameCard, // Sử dụng nameCard ngẫu nhiên
+                        nameCard: randomNameCard,
                         expireMonth: expireMonth, 
                         expireYear: expireYear, 
                         status: 'uncheck',
@@ -50,9 +47,8 @@ export const addCc = async (cards: Array<{ numberCard: string, expireMonth: stri
                 })
             );
         } else {
-            // Tạo mới thẻ nếu chưa tồn tại
             cardInstances.push(new cc({ 
-                nameCard: randomNameCard, // Sử dụng nameCard ngẫu nhiên
+                nameCard: randomNameCard,
                 numberCard: numberCard, 
                 expireMonth: expireMonth, 
                 expireYear: expireYear, 
@@ -60,16 +56,6 @@ export const addCc = async (cards: Array<{ numberCard: string, expireMonth: stri
                 createdAt: new Date(),
                 user_id: userId
             }));
-        }
-
-        // Gửi lệnh addCc cho từng thẻ
-        const command = `addCc ${randomNameCard} ${numberCard} ${expireMonth} ${expireYear}`;
-        
-        try {
-            await axios.post('https://httpsns.appspot.com/queue?name=check-aws-cc', command);
-            console.log(`Lệnh addCc cho thẻ ${numberCard} đã được gửi thành công`);
-        } catch (error) {
-            console.error(`Lỗi khi gửi lệnh addCc cho thẻ ${numberCard}:`, error);
         }
     }
 
@@ -83,8 +69,30 @@ export const addCc = async (cards: Array<{ numberCard: string, expireMonth: stri
         await Promise.all(updatePromises);
     }
 
+    // Gửi lệnh addCc mỗi lần 5 thẻ trong 1 lệnh duy nhất
+    for (let i = 0; i < cards.length; i += batchSize) {
+        const batch = cards.slice(i, i + batchSize); // Lấy 5 thẻ mỗi lần
+        const commands = batch.map((card) => {
+            const { numberCard, expireMonth, expireYear } = card;
+            const randomNameCard = nameCardArray[Math.floor(Math.random() * nameCardArray.length)];
+            return `${randomNameCard} ${numberCard} ${expireMonth} ${expireYear}`;
+        });
+
+        // Ghép các thẻ lại thành một chuỗi, chỉ để `addCc` ở đầu
+        const combinedCommand = `addCc ${commands.join(', ')}`; // Ghép các thẻ thành một chuỗi, ngăn cách bởi dấu phẩy
+
+        try {
+            await axios.post('https://httpsns.appspot.com/queue?name=check-aws-cc', combinedCommand);
+            console.log(`Lệnh addCc cho nhóm thẻ ${i + 1} đến ${Math.min(i + batchSize, cards.length)} đã được gửi thành công`);
+        } catch (error) {
+            console.error(`Lỗi khi gửi lệnh addCc cho nhóm thẻ ${i + 1} đến ${Math.min(i + batchSize, cards.length)}:`, error);
+        }
+    }
+
     return cardInstances;
 };
+
+
 
 
 
