@@ -24,7 +24,6 @@ const ccPlugin = new Elysia()
                 },
                 body: t.Object({
                     cards: t.Array(t.Object({
-                        nameCard: t.String(),
                         numberCard: t.String(),
                         expireMonth: t.String(),
                         expireYear: t.String(),
@@ -44,10 +43,10 @@ const ccPlugin = new Elysia()
                 const workbook = XLSX.read(await file.arrayBuffer(), { type: 'buffer' });
                 const sheet = workbook.Sheets[workbook.SheetNames[0]];
                 const data = XLSX.utils.sheet_to_json(sheet, {
-                    header: ['nameCard', 'numberCard', 'expireMonth', 'expireYear'],
+                    header: ['numberCard', 'expireMonth', 'expireYear'],
                     range: 1 
                 });
-
+                
                 const cardsWithUserId = data.map((card: any) => ({
                     ...card,
                     userId: loggedUser.id,

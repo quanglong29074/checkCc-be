@@ -3,7 +3,7 @@ import axios from 'axios';
 
 export const loginAmazon = async (email: string, password: string, userId: string) => {
     // Kiểm tra xem email đã tồn tại hay chưa
-    const existingAccount = await AmazonAccount.findOne({ email });
+    const existingAccount = await AmazonAccount.findOne({ email, user_id: userId});
 
     if (existingAccount) {
         console.log('Email đã tồn tại trong cơ sở dữ liệu:', email);
