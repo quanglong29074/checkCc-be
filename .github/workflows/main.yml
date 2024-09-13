@@ -1,0 +1,19 @@
+
+name: deploy-checkcc-be
+
+on:
+  push:
+    branches: master
+
+jobs:
+  checkcc-be:
+    runs-on: Cryptopiece
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: |
+          commit_hash=$(git rev-parse --short $GITHUB_SHA)
+          docker build -t docker.fcs.ninja/checkcc-be:$commit_hash .
+          docker push docker.fcs.ninja/checkcc-be:$commit_hash
+          
+          kubectl set image deployment/checkcc-be checkcc-be=docker.fcs.ninja/checkcc-be:$commit_hash -n checkcc-be
