@@ -4,6 +4,8 @@ import addressPlugin from './plugins/addressPlugin';
 import amazonAccountPlugin from './plugins/amazonAccountPlugin';
 import authPlugin from './plugins/auth';
 import ccPlugin from './plugins/ccPlugin';
+import gpmProfilePlugin from './plugins/gpmProfilePlugin';
+
 
 import { cors } from '@elysiajs/cors'
 
@@ -41,6 +43,8 @@ const app = new Elysia()
   .use(addressPlugin)
   .use(amazonAccountPlugin)
   .use(ccPlugin)
+  .use(gpmProfilePlugin)
+
   )
   .use(cors())
   .listen(3000);
