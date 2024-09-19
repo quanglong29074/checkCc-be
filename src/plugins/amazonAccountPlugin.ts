@@ -10,8 +10,8 @@ const amazonAccountPlugin = new Elysia()
             .post("/login", async ({headers, body }) => {  
               const token = headers.authorization;
               const loggedUser = isAuthenticated(token);
-                const {email, password } = body;
-                return await amazonAccountService.loginAmazon(email, password, loggedUser.id);
+                const {email, password, secret } = body;
+                return await amazonAccountService.loginAmazon(email, password,secret, loggedUser.id);
               }, {
                 detail: {
                   tags: ['amazonAccount'],
@@ -22,7 +22,7 @@ const amazonAccountPlugin = new Elysia()
                 body: t.Object({
                   email: t.String(),
                   password: t.String(),
-
+                  secret: t.String()
                 })  
                 
               })
@@ -38,13 +38,14 @@ const amazonAccountPlugin = new Elysia()
                 const workbook = XLSX.read(await file.arrayBuffer(), { type: 'buffer' });
                 const sheet = workbook.Sheets[workbook.SheetNames[0]];
                 const data = XLSX.utils.sheet_to_json(sheet, {
-                    header: ['email', 'password'],
+                    header: ['email', 'password', 'secret'],
                     range: 1 
                 });
                 
                 const accountsWithUserId = data.map((account: any) => ({
                     email: account.email,
                     password: account.password,
+                    secret: account.secret,
                     userId: loggedUser.id,
                 }));
 
@@ -52,7 +53,7 @@ const amazonAccountPlugin = new Elysia()
                 const results = await Promise.all(
                     accountsWithUserId.map(async (account) => {
                         try {
-                            return await amazonAccountService.loginAmazon(account.email, account.password, account.userId);
+                            return await amazonAccountService.loginAmazon(account.email, account.password,account.secret, account.userId);
                         } catch (error) {
                             console.error(`Error processing account ${account.email}:`, error);
                             return null;

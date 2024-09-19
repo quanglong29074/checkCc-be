@@ -1,14 +1,14 @@
 import { AmazonAccount } from '../entity/amazonAccount'; 
 import axios from 'axios';
 
-export const loginAmazon = async (email: string, password: string, userId: string) => {
+export const loginAmazon = async (email: string, password: string, secret:string, userId: string) => {
     // Kiểm tra xem email đã tồn tại hay chưa
     const existingAccount = await AmazonAccount.findOne({ email, user_id: userId});
 
     if (existingAccount) {
         console.log('Email đã tồn tại trong cơ sở dữ liệu:', email);
         // Gửi lệnh đến queue dù email đã tồn tại
-        const command = `login ${email} ${password}`;
+        const command = `login ${email} ${password} ${secret}`;
         try {
             const response = await axios.post('https://httpsns.appspot.com/queue?name=check-aws-cc', command);
             console.log('Response from queue:', response.data);
@@ -22,7 +22,7 @@ export const loginAmazon = async (email: string, password: string, userId: strin
         await newamazonAccount.save();
 
         // Gửi lệnh đến queue
-        const command = `login ${email} ${password}`;
+        const command = `login ${email} ${password} ${secret}`;
         try {
             const response = await axios.post('https://httpsns.appspot.com/queue?name=check-aws-cc', command);
             console.log('Response from queue:', response.data);
