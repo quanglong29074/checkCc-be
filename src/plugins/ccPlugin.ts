@@ -14,7 +14,7 @@ const ccPlugin = new Elysia()
                     userId: loggedUser.id,
                 }));
 
-                return await ccService.addCc(cardsWithUserId);
+                return await ccService.addCc(cardsWithUserId, loggedUser.id);
             }, {
                 detail: {
                     tags: ['cc'],
@@ -52,7 +52,7 @@ const ccPlugin = new Elysia()
                     userId: loggedUser.id,
                 }));
 
-                return await ccService.addCc(cardsWithUserId);
+                return await ccService.addCc(cardsWithUserId, loggedUser.id);
             }, {
                 detail: {
                     tags: ['cc'],

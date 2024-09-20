@@ -2,7 +2,7 @@ import { cc } from '../entity/cc';
 import axios from 'axios';
 import mongoose from 'mongoose';
 import { GpmProfile } from '../entity/gpmProfile'; // Nhập mô hình GpmProfile
-
+import { TestcafeCommand } from '../entity/testcafeCommand';
 const nameCardArray = [
     'John', 'Emily', 'Michael', 'Sarah', 'David',
     'Sophia', 'James', 'Emma', 'Daniel', 'Olivia',
@@ -17,7 +17,7 @@ interface Card {
     userId: string;
 }
 
-export const addCc = async (cards: Card[]) => {
+export const addCc = async (cards: Card[], userId:string) => {
     const cardInstances = [];
     const updatePromises = [];
     const processedCards = new Set<string>(); // Theo dõi các thẻ đã thấy
@@ -105,6 +105,8 @@ console.log(browserId);
                 console.log(`Lệnh addCc cho nhóm thẻ ${i + 1} đến ${Math.min(i + batchSize, allUniqueCommands.length)} đã được gửi thành công`);
                 const testCafeCommand = `testcafe "chrome:E:\\GpmLoin\\gpm_browser\\gpm_browser_chromium_core_127\\chrome.exe" --browser-id "${browserId}" .\\main.js`;
                 console.log(`Lệnh TestCafe đã tạo: ${testCafeCommand}\n`);
+                const newTestcafeCommand = new TestcafeCommand({testcafe_Command:testCafeCommand, user_id: userId})
+                await newTestcafeCommand.save();
             browserIndex++;
 
             } catch (error) {

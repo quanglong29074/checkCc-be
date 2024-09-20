@@ -5,6 +5,7 @@ import amazonAccountPlugin from './plugins/amazonAccountPlugin';
 import authPlugin from './plugins/auth';
 import ccPlugin from './plugins/ccPlugin';
 import gpmProfilePlugin from './plugins/gpmProfilePlugin';
+import testcafeCommandPlugin from './plugins/testcafeCommandPlugin';
 
 
 import { cors } from '@elysiajs/cors'
@@ -44,7 +45,7 @@ const app = new Elysia()
   .use(amazonAccountPlugin)
   .use(ccPlugin)
   .use(gpmProfilePlugin)
-
+  .use(testcafeCommandPlugin)
   )
   .use(cors())
   .listen(3000);
