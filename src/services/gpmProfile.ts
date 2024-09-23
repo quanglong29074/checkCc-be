@@ -1,4 +1,5 @@
 import { GpmProfile } from "../entity/gpmProfile";
+import { Proxy } from "../entity/proxy";
 
 export const addBrowserIds = async (browserIds: string[], userId: string) => {
     const results = await Promise.all(browserIds.map(async (browserId) => {
@@ -21,3 +22,23 @@ export const addBrowserIds = async (browserIds: string[], userId: string) => {
     return results;
 }
 
+export const addProxy = async (proxys: string[], userId: string) => {
+    const results = await Promise.all(proxys.map(async (proxy) => {
+        try {
+            const existingProxy = await Proxy.findOne({ proxy: proxy, user_id: userId });
+            if (existingProxy) {
+                console.log("browserId đã tồn tại: ", proxy);
+                return existingProxy;
+            } else {
+                const newProxy = new Proxy({ proxy: proxy, user_id: userId });
+                await newProxy.save();
+                return newProxy;
+            }
+        } catch (error) {
+            console.error(`Lỗi khi thêm browserId: ${proxy}`, error);
+            return null;
+        }
+    }));
+
+    return results;
+}
