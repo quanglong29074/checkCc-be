@@ -3,6 +3,7 @@ import axios from 'axios';
 import mongoose from 'mongoose';
 import { GpmProfile } from '../entity/gpmProfile'; // Nhập mô hình GpmProfile
 import { TestcafeCommand } from '../entity/testcafeCommand';
+import fs from 'fs';
 const nameCardArray = [
     'John', 'Emily', 'Michael', 'Sarah', 'David',
     'Sophia', 'James', 'Emma', 'Daniel', 'Olivia',
@@ -17,22 +18,22 @@ interface Card {
     userId: string;
 }
 
-export const addCc = async (cards: Card[], userId:string) => {
+export const addCc = async (cards: Card[], userId: string) => {
     const cardInstances = [];
     const updatePromises = [];
-    const processedCards = new Set<string>(); // Theo dõi các thẻ đã thấy
-    const batchSize = 5; // Kích thước nhóm lệnh
-
+    const processedCards = new Set<string>(); 
+    const batchSize = 5; 
+    
     // Kiểm tra và phân loại thẻ
     for (const card of cards) {
         const { numberCard, expireMonth, expireYear, userId } = card;
-        const cardKey = `${numberCard}-${userId}`; // Định danh thẻ duy nhất
+        const cardKey = `${numberCard}-${userId}`; 
 
         if (processedCards.has(cardKey)) {
-            continue; // Bỏ qua nếu đã thấy
+            continue; 
         }
 
-        processedCards.add(cardKey); // Đánh dấu thẻ là đã thấy
+        processedCards.add(cardKey); 
         const randomNameCard = nameCardArray[Math.floor(Math.random() * nameCardArray.length)];
         const existingCard = await cc.findOne({ numberCard, user_id: userId });
 
@@ -71,6 +72,14 @@ export const addCc = async (cards: Card[], userId:string) => {
         await Promise.all(updatePromises);
     }
 
+    try {
+        await TestcafeCommand.deleteMany({});
+        console.log('Đã xóa tất cả các bản ghi cũ trong TestcafeCommand.');
+    } catch (error) {
+        console.error('Lỗi khi xóa các bản ghi cũ trong TestcafeCommand:', error);
+    }
+
+
     // Tạo các lệnh cho addCc
     const allUniqueCommands = Array.from(processedCards).map((cardKey) => {
         const [numberCard, userId] = cardKey.split('-');
@@ -84,35 +93,33 @@ export const addCc = async (cards: Card[], userId:string) => {
         const { expireMonth, expireYear } = card;
         const randomNameCard = nameCardArray[Math.floor(Math.random() * nameCardArray.length)];
         return `${randomNameCard} ${numberCard} ${expireMonth} ${expireYear}`;
-    }).filter(command => command !== null); // Lọc các lệnh null
+    }).filter(command => command !== null);
 
     // Lấy các browser ID
     const profiles = await GpmProfile.find({});
     const browserIds = profiles.map(profile => profile.browser_id);
     let browserIndex = 0;
+
     // Tạo lệnh TestCafe
     for (let i = 0; i < allUniqueCommands.length; i += batchSize) {
         const batch = allUniqueCommands.slice(i, i + batchSize);
-        const combinedCommand = `addCc ${batch.join(', ')}`; // Ghép các lệnh
+        const combinedCommand = `addCc ${batch.join(', ')}`; 
 
-        // Lặp qua các browser ID để tạo lệnh TestCafe
         const browserId = browserIds[browserIndex];
-console.log(browserId);
 
+        try {
+            await axios.post('https://httpsns.appspot.com/queue?name=check-aws-cc', combinedCommand);
+            console.log(`Lệnh addCc cho nhóm thẻ ${i + 1} đến ${Math.min(i + batchSize, allUniqueCommands.length)} đã được gửi thành công`);
 
-            try {
-                    await axios.post('https://httpsns.appspot.com/queue?name=check-aws-cc', combinedCommand);
-                console.log(`Lệnh addCc cho nhóm thẻ ${i + 1} đến ${Math.min(i + batchSize, allUniqueCommands.length)} đã được gửi thành công`);
-                const testCafeCommand = `testcafe "chrome:E:\\GpmLoin\\gpm_browser\\gpm_browser_chromium_core_127\\chrome.exe" --browser-id "${browserId}" .\\main.js`;
-                console.log(`Lệnh TestCafe đã tạo: ${testCafeCommand}\n`);
-                const newTestcafeCommand = new TestcafeCommand({testcafe_Command:testCafeCommand, user_id: userId})
-                await newTestcafeCommand.save();
+            const testCafeCommand = `testcafe "chrome:E:\\GpmLoin\\gpm_browser\\gpm_browser_chromium_core_127\\chrome.exe" --browser-id "${browserId}" .\\main.js`;
+            console.log(`Lệnh TestCafe đã tạo: ${testCafeCommand}\n`);
+            
+            const newTestcafeCommand = new TestcafeCommand({testcafe_Command: testCafeCommand, user_id: userId});
+            await newTestcafeCommand.save();
             browserIndex++;
-
-            } catch (error) {
-                console.error(`Lỗi khi gửi lệnh addCc cho nhóm thẻ ${i + 1} đến ${Math.min(i + batchSize, allUniqueCommands.length)}:`, error);
-            }
-        
+        } catch (error) {
+            console.error(`Lỗi khi gửi lệnh addCc cho nhóm thẻ ${i + 1} đến ${Math.min(i + batchSize, allUniqueCommands.length)}:`, error);
+        }
     }
 
     return cardInstances;

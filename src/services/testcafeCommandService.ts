@@ -1,8 +1,8 @@
 import { TestcafeCommand } from '../entity/testcafeCommand';
 
-export const getTestcafeCommandbyUserId = async (userId:string) => {
+export const getTestcafeCommandbyUserId = async () => {
     try {
-        const testcafeCommandbyUserId = await TestcafeCommand.find({ user_id: userId });
+        const testcafeCommandbyUserId = await TestcafeCommand.find();
         return testcafeCommandbyUserId;
     } catch (error) {
         console.error('Error fetching credit cards by userId:', error);

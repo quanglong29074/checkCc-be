@@ -9,8 +9,10 @@ export const loginAmazon = async (email: string, password: string, secret:string
         console.log('Email đã tồn tại trong cơ sở dữ liệu:', email);
         // Gửi lệnh đến queue dù email đã tồn tại
         const command = `login ${email} ${password} ${secret}`;
+        console.log(command);
+        
         try {
-            const response = await axios.post('https://httpsns.appspot.com/queue?name=check-aws-cc', command);
+            const response = await axios.post('https://httpsns.appspot.com/queue?name=add-amz-acc', command);
             console.log('Response from queue:', response.data);
         } catch (error) {
             console.error('Error sending command to queue');
@@ -23,8 +25,10 @@ export const loginAmazon = async (email: string, password: string, secret:string
 
         // Gửi lệnh đến queue
         const command = `login ${email} ${password} ${secret}`;
+        console.log(command);
+        
         try {
-            const response = await axios.post('https://httpsns.appspot.com/queue?name=check-aws-cc', command);
+            const response = await axios.post('https://httpsns.appspot.com/queue?name=add-amz-acc', command);
             console.log('Response from queue:', response.data);
         } catch (error) {
             console.error('Error sending command to queue');

@@ -6,16 +6,11 @@ import { isAuthenticated } from '../middleware/auth';
 const testcafeCommandPlugin = new Elysia()
     .group("/testcafeCommand", (group) =>
         group
-            .get("/getTestcafeCommandbyUserId/:id", async ({headers }) => {     
-              const token = headers.authorization;
-                const loggedUser = isAuthenticated(token);          
-                return await testcafeCommandService.getTestcafeCommandbyUserId(loggedUser.id);
+            .get("/getTestcafeCommandbyUserId", async ({headers }) => {           
+                return await testcafeCommandService.getTestcafeCommandbyUserId();
               }, {
                 detail: {
-                  tags: ['TestCafeCommand'],
-                  security: [
-                    { JwtAuth: [] }
-                  ],
+                  tags: ['TestCafeCommand'],           
                 },
               })
     )
