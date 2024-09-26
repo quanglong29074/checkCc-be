@@ -10,7 +10,11 @@ const amazonAccountPlugin = new Elysia()
             .post("/login", async ({headers, body }) => {  
               const token = headers.authorization;
               const loggedUser = isAuthenticated(token);
-                const {email, password, secret } = body;
+                let {email, password, secret } = body;
+                if (!secret) {
+                    secret = 'undefined'; 
+                }
+            
                 return await amazonAccountService.loginAmazon(email, password,secret, loggedUser.id);
               }, {
                 detail: {
