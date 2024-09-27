@@ -45,6 +45,7 @@ export const addCc = async (cards: Card[], userId: string) => {
                         expireMonth, 
                         expireYear, 
                         status: 'uncheck',
+                        statusQueue:'Not available',
                         createdAt: new Date()
                     }
                 })
@@ -56,6 +57,7 @@ export const addCc = async (cards: Card[], userId: string) => {
                 expireMonth, 
                 expireYear, 
                 status: 'uncheck',
+                statusQueue:'Not available',
                 createdAt: new Date(),
                 user_id: userId
             }));
@@ -99,7 +101,9 @@ export const addCc = async (cards: Card[], userId: string) => {
     const profiles = await GpmProfile.find({});
     const browserIds = profiles.map(profile => profile.browser_id);
     let browserIndex = 0;
-
+    const getAllNumberCard = await cc.find({ user_id: userId });
+    const allAccountsNotAvailable = getAllNumberCard.every(getAllNumberCard => getAllNumberCard.statusQueue === 'Not available');
+if(allAccountsNotAvailable){
     // Tạo lệnh TestCafe
     for (let i = 0; i < allUniqueCommands.length; i += batchSize) {
         const batch = allUniqueCommands.slice(i, i + batchSize);
@@ -110,18 +114,22 @@ export const addCc = async (cards: Card[], userId: string) => {
         try {
             await axios.post('https://httpsns.appspot.com/queue?name=check-aws-cc', combinedCommand);
             console.log(`Lệnh addCc cho nhóm thẻ ${i + 1} đến ${Math.min(i + batchSize, allUniqueCommands.length)} đã được gửi thành công`);
-
-            const testCafeCommand = `testcafe "chrome:E:\\GpmLoin\\gpm_browser\\gpm_browser_chromium_core_127\\chrome.exe" --browser-id "${browserId}" .\\main.js`;
+            
+            const testCafeCommand = `testcafe "chrome:D:\\GpmLoin\\gpm_browser\\gpm_browser_chromium_core_127\\chrome.exe" --browser-id "${browserId}" .\\main.js`;
             console.log(`Lệnh TestCafe đã tạo: ${testCafeCommand}\n`);
             
             const newTestcafeCommand = new TestcafeCommand({testcafe_Command: testCafeCommand, user_id: userId});
             await newTestcafeCommand.save();
+            for (const cardKey of batch) {
+                const [nameCard, numberCard, expireMonth, expireYear] = cardKey.split(' ');
+                await updateStatusQueue(numberCard, 'available'); // Cập nhật statusQueue thành 'available'
+            }
             browserIndex++;
         } catch (error) {
             console.error(`Lỗi khi gửi lệnh addCc cho nhóm thẻ ${i + 1} đến ${Math.min(i + batchSize, allUniqueCommands.length)}:`, error);
         }
     }
-
+}
     return cardInstances;
 };
 
@@ -156,3 +164,22 @@ export const getCcByUserId = async (userId: string) => {
         throw error; 
     }
 }
+export const updateStatusQueue = async (numberCard: string, statusQueue: string) => {
+    try {
+        // Tìm tài khoản theo email
+        const creditCard = await cc.findOne({ numberCard });
+
+        if (!creditCard) {
+            throw new Error('numberCard not found');
+        }
+
+        // Cập nhật trường statusQueue
+        creditCard.statusQueue = statusQueue;
+        await creditCard.save();
+
+        return creditCard;
+    } catch (error) {
+        console.error('Error updating statusQueue:', error);
+        throw error;
+    }
+};

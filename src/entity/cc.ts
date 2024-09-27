@@ -16,6 +16,9 @@ const ccSchema  = new mongoose.Schema({
   status: {
     type: String
   },
+  statusQueue: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now

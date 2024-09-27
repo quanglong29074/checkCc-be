@@ -7,6 +7,9 @@ const amazonAccountSchema  = new mongoose.Schema({
   password: {
     type: String,
   },
+  statusQueue: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -78,6 +78,21 @@ const amazonAccountPlugin = new Elysia()
                     })
                 })
             })
+            .put("/updateStatusQueue", async ({ headers, body }) => {
+            
+                const { email, statusQueue } = body;
+            
+                return await amazonAccountService.updateStatusQueue(email, statusQueue);
+            }, {
+                detail: {
+                    tags: ['amazonAccount'],
+                },
+                body: t.Object({
+                    email: t.String(),
+                    statusQueue: t.String()
+                })
+            })
+            
     )
 
 export default amazonAccountPlugin;

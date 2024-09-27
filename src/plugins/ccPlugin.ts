@@ -92,6 +92,21 @@ const ccPlugin = new Elysia()
                     status: t.String()
                 })
             })
+            .put("/updateStatusQueue", async ({  body }) => {
+            
+                const { numberCard, statusQueue } = body;
+            
+                return await ccService.updateStatusQueue(numberCard, statusQueue);
+            }, {
+                detail: {
+                    tags: ['cc'],
+                },
+                body: t.Object({
+                    numberCard: t.String(),
+                    statusQueue: t.String()
+                })
+            })
+            
     );
 
 export default ccPlugin;
