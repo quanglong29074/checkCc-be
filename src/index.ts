@@ -19,8 +19,8 @@ const app = new Elysia()
     provider: 'swagger-ui',
     documentation: {
       info: {
-        title: 'Elysia Template',
-        description: 'Elysia Template API Documentation',
+        title: 'Check credit card',
+        description: 'Check credit card API Documentation',
         version: '1.0.0',
       },
       components: {

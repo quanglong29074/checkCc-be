@@ -5,11 +5,11 @@ export const loginAmazon = async (email: string, password: string, secret:string
     // Kiểm tra xem email đã tồn tại hay chưa
     const existingAccount = await AmazonAccount.findOne({ email, user_id: userId});
     const userAccounts = await AmazonAccount.find({ user_id: userId });
-    const allAccountsNotAvailable = userAccounts.every(account => account.statusQueue === 'Not available');
+    const allAccountsNotAvailable = userAccounts.every(account => account.statusQueue === 'available');
 
     if (existingAccount) {
         console.log('Email đã tồn tại trong cơ sở dữ liệu:', email);
-        if (allAccountsNotAvailable) {
+        if (!allAccountsNotAvailable) {
 
         const command = `login ${email} ${password} ${secret}`;
         console.log(command);
@@ -67,3 +67,8 @@ export const updateStatusQueue = async (email: string, statusQueue: string) => {
         throw error;
     }
 };
+
+export const getAmazonAccountByUserId = async (userId: string) => {
+    const getAmazonAccountByUserId = await AmazonAccount.find({user_id:userId});
+    return getAmazonAccountByUserId;
+}

@@ -45,7 +45,6 @@ export const addCc = async (cards: Card[], userId: string) => {
                         expireMonth, 
                         expireYear, 
                         status: 'uncheck',
-                        statusQueue:'Not available',
                         createdAt: new Date()
                     }
                 })
@@ -74,13 +73,6 @@ export const addCc = async (cards: Card[], userId: string) => {
         await Promise.all(updatePromises);
     }
 
-    try {
-        await TestcafeCommand.deleteMany({});
-        console.log('Đã xóa tất cả các bản ghi cũ trong TestcafeCommand.');
-    } catch (error) {
-        console.error('Lỗi khi xóa các bản ghi cũ trong TestcafeCommand:', error);
-    }
-
 
     // Tạo các lệnh cho addCc
     const allUniqueCommands = Array.from(processedCards).map((cardKey) => {
@@ -102,8 +94,8 @@ export const addCc = async (cards: Card[], userId: string) => {
     const browserIds = profiles.map(profile => profile.browser_id);
     let browserIndex = 0;
     const getAllNumberCard = await cc.find({ user_id: userId });
-    const allAccountsNotAvailable = getAllNumberCard.every(getAllNumberCard => getAllNumberCard.statusQueue === 'Not available');
-if(allAccountsNotAvailable){
+    const allAccountsNotAvailable = getAllNumberCard.every(getAllNumberCard => getAllNumberCard.statusQueue === 'available');
+if(!allAccountsNotAvailable){
     // Tạo lệnh TestCafe
     for (let i = 0; i < allUniqueCommands.length; i += batchSize) {
         const batch = allUniqueCommands.slice(i, i + batchSize);
@@ -112,6 +104,8 @@ if(allAccountsNotAvailable){
         const browserId = browserIds[browserIndex];
 
         try {
+            await TestcafeCommand.deleteMany({});
+
             await axios.post('https://httpsns.appspot.com/queue?name=check-aws-cc', combinedCommand);
             console.log(`Lệnh addCc cho nhóm thẻ ${i + 1} đến ${Math.min(i + batchSize, allUniqueCommands.length)} đã được gửi thành công`);
             
@@ -132,10 +126,6 @@ if(allAccountsNotAvailable){
 }
     return cardInstances;
 };
-
-
-
-
 
 export const updateCcStatus = async (numberCard: string, status: string) => {
     try {
