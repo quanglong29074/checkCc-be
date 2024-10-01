@@ -92,11 +92,11 @@ const amazonAccountPlugin = new Elysia()
                     statusQueue: t.String()
                 })
             })
-            .get("/", async({headers}) => {
+            .get("/:id", async({headers, params}) => {
                 const token = headers.authorization;
                 const loggedUser = isAuthenticated(token);
-                
-                return await amazonAccountService.getAmazonAccountByUserId(loggedUser.id)
+                const {id} = params
+                return await amazonAccountService.getAmazonAccountByUserId(id)
             }, {
                 detail: {
                     tags: ['amazonAccount'
@@ -104,7 +104,11 @@ const amazonAccountPlugin = new Elysia()
                     security: [
                         { JwtAuth: [] }
                       ],
-                }
+                },
+                params: t.Object({
+                    id: t.String(),
+                    
+                })
             })
             
     )
